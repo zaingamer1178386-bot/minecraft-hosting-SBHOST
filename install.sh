@@ -199,5 +199,151 @@ done
 # =========================
 # Start
 # =========================
+# ==================================================
+# SBHOST - Install Docker + Docker Compose + Node.js
+# + Nginx
+# ==================================================
 
+install_requirements() {
+
+clear
+
+echo "========================================"
+echo " Installing Required Packages"
+echo "========================================"
+echo
+
+apt update -y
+
+apt install -y \
+curl \
+wget \
+git \
+unzip \
+tar \
+software-properties-common \
+ca-certificates \
+apt-transport-https \
+gnupg \
+lsb-release
+
+echo
+echo "Base Packages Installed."
+sleep 2
+
+#########################################
+# Docker
+#########################################
+
+if ! command -v docker >/dev/null 2>&1; then
+
+echo
+echo "Installing Docker..."
+
+curl -fsSL https://get.docker.com | bash
+
+systemctl enable docker
+systemctl start docker
+
+else
+
+echo
+echo "Docker Already Installed."
+
+fi
+
+#########################################
+# Docker Compose
+#########################################
+
+if ! docker compose version >/dev/null 2>&1; then
+
+echo
+echo "Installing Docker Compose..."
+
+mkdir -p ~/.docker/cli-plugins
+
+curl -SL \
+https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+-o ~/.docker/cli-plugins/docker-compose
+
+chmod +x ~/.docker/cli-plugins/docker-compose
+
+else
+
+echo
+echo "Docker Compose Already Installed."
+
+fi
+
+#########################################
+# Node.js 22
+#########################################
+
+if ! command -v node >/dev/null 2>&1; then
+
+echo
+echo "Installing Node.js..."
+
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+
+apt install -y nodejs
+
+else
+
+echo
+echo "Node.js Already Installed."
+
+fi
+
+#########################################
+# Nginx
+#########################################
+
+if ! command -v nginx >/dev/null 2>&1; then
+
+echo
+echo "Installing Nginx..."
+
+apt install -y nginx
+
+systemctl enable nginx
+systemctl start nginx
+
+else
+
+echo
+echo "Nginx Already Installed."
+
+fi
+
+echo
+echo "========================================"
+echo " All Requirements Installed Successfully"
+echo "========================================"
+
+echo
+echo "Docker Version:"
+docker --version
+
+echo
+echo "Docker Compose:"
+docker compose version
+
+echo
+echo "Node Version:"
+node -v
+
+echo
+echo "NPM Version:"
+npm -v
+
+echo
+echo "Nginx Version:"
+nginx -v
+
+echo
+read -p "Press Enter To Continue..."
+
+}
 main_menu
