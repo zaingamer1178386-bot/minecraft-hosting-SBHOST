@@ -38,14 +38,23 @@ case $option in
     1)
         echo ""
         echo -e "${GREEN}[+] Option 1: Real Minecraft VPS Environment shuru ho raha hai...${NC}"
-        echo "Updating system and installing Docker for Minecraft containers..."
+        echo "Updating system and installing packages..."
         apt-get update && apt-get upgrade -y
         apt-get install -y curl wget ufw git
         
-        # Install Docker if not installed
-        if ! command -v docker &> /dev/null; then
-            curl -sSL https://get.docker.com | channel=stable sh
+        # Check if systemd is running to avoid container errors
+        if pidof systemd >/dev/null 2>&1; then
+            echo "Systemd is active. Enabling Docker service..."
+            if ! command -v docker &> /dev/null; then
+                curl -sSL https://get.docker.com | channel=stable sh
+            fi
             systemctl enable --now docker
+        else
+            echo -e "${YELLOW}[i] Note: Systemd is not running (Container environment detected). Skipping systemctl.${NC}"
+            echo "Installing Docker binaries/client for container..."
+            if ! command -v docker &> /dev/null; then
+                curl -sSL https://get.docker.com | channel=stable sh
+            fi
         fi
         
         echo -e "${GREEN}[✔] Minecraft VPS Environment mukammal taur par tayar ho gaya hai!${NC}"
@@ -62,7 +71,7 @@ case $option in
         fi
 
         # Get server public IP and check domain DNS
-        server_ip=$(curl -s ifconfig.me)
+        server_ip=$(curl -s ifconfig.me || hostname -I | awk '{print $1}')
         domain_ip=$(dig +short "$user_domain" | tail -n1)
 
         echo -e "${YELLOW}[i] Checking domain configuration for: $user_domain ...${NC}"
@@ -78,7 +87,6 @@ case $option in
             echo -e "${GREEN}[✔] Domain verified successfully! IP match ho gayi hai.${NC}"
             echo -e "${CYAN}[i] Installing Pterodactyl Minecraft Panel locally on this VPS...${NC}"
             
-            # Automated Pterodactyl Panel single-click script execution for local VPS
             bash <(curl -s https://raw.githubusercontent.com/pterodactyl-installer/pterodactyl-installer/v1.7.0/install.sh) --panel --extras --email admin@$user_domain --unoview --panel-domain $user_domain --php-version 8.1 --no-firewall --no-letsencrypt
             
             echo -e "${GREEN}[✔] Minecraft Panel successfully is VPS par ban gaya hai!${NC}"
