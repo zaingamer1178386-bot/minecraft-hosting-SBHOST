@@ -347,3 +347,59 @@ read -p "Press Enter To Continue..."
 
 }
 main_menu
+#!/bin/bash
+
+# ==================================================
+# SBHOST Part 3A
+# PHP 8.3 + MariaDB + Redis + Composer
+# ==================================================
+
+set -e
+
+echo "Updating packages..."
+apt update -y
+
+echo "Installing PHP..."
+apt install -y software-properties-common ca-certificates lsb-release apt-transport-https
+add-apt-repository -y ppa:ondrej/php || true
+apt update -y
+
+apt install -y \
+php8.3 php8.3-cli php8.3-fpm php8.3-common \
+php8.3-mysql php8.3-gd php8.3-mbstring php8.3-bcmath \
+php8.3-xml php8.3-curl php8.3-zip php8.3-intl
+
+echo "Installing MariaDB..."
+apt install -y mariadb-server
+systemctl enable mariadb || true
+systemctl start mariadb || true
+
+echo "Installing Redis..."
+apt install -y redis-server
+systemctl enable redis-server || true
+systemctl start redis-server || true
+
+echo "Installing Composer..."
+EXPECTED_SIGNATURE=$(curl -s https://composer.github.io/installer.sig)
+php -r "copy('https://getcomposer.org/installer','composer-setup.php');"
+ACTUAL_SIGNATURE=$(php -r "echo hash_file('sha384','composer-setup.php');")
+
+if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then
+    echo "Composer installer signature mismatch."
+    rm -f composer-setup.php
+    exit 1
+fi
+
+php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+rm -f composer-setup.php
+
+echo
+echo "===================================="
+echo " SBHOST Part 3A Completed!"
+echo "===================================="
+echo "PHP: $(php -v | head -n1)"
+echo "Composer: $(composer --version)"
+echo "MariaDB installed."
+echo "Redis installed."
+echo
+echo "Continue with Part 3B next."
