@@ -212,7 +212,7 @@ boot_qemu() {
     echo -e "${WHITE}👤 Username : ${CYAN}${USER_NAME:-ubuntu}${NC}"
     echo -e "${WHITE}🔑 Password : ${CYAN}${USER_PASS:-1234}${NC}"
     echo -e "${WHITE}⚙️  Resources: ${CYAN}${RAM_VALUE} RAM | ${CPU_CORES:-4} Cores${NC}"
-    echo -e "${WHITE}🚀 Port Rule : ${YELLOW}Host Port ${TCP_HOST_PORT} -> VM Port ${TCP_GUEST_PORT}${NC}"
+    echo -e "${WHITE}🚀 Port Rule : ${YELLOW}Host Port ${TCP_HOST_PORT} -> VM Port ${TCP_GUEST_PORT} | MC Port 25565${NC}"
     echo -e "${RED}----------------------------------------------------------${NC}"
     if [ ! -z "$SSHX_URL" ]; then
         echo -e "${YELLOW}🔥 POPOUT LIVE ACCESS WEB LINK (Copy & Paste in Browser):${NC}"
@@ -225,14 +225,14 @@ boot_qemu() {
     echo -e "${GREEN}==========================================================${NC}"
     echo ""
     
-    # 🚀 EXECUTING INTEGRATED CORE NETDEV NETWORK COMMAND STRUCTURE
+    # 🚀 EXECUTING INTEGRATED CORE NETDEV NETWORK COMMAND STRUCTURE WITH MINECRAFT PORT FORWARD (25565)
     qemu-system-x86_64 \
         -hda /home/daytona/ubuntu22.qcow2 \
         -m $RAM_VALUE \
         -smp ${CPU_CORES:-4} \
         -drive file=seed.img,format=raw \
         -nographic \
-        -netdev user,id=net0,hostfwd=tcp::${TCP_HOST_PORT}-:${TCP_GUEST_PORT} \
+        -netdev user,id=net0,hostfwd=tcp::${TCP_HOST_PORT}-:${TCP_GUEST_PORT},hostfwd=tcp::25565-:25565 \
         -device e1000,netdev=net0
 }
 
