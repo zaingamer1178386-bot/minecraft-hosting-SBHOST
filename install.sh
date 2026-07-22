@@ -1,405 +1,93 @@
 #!/bin/bash
 
-set -e
-
-# =========================
-# Colors
-# =========================
-RED="\e[31m"
-GREEN="\e[32m"
-YELLOW="\e[33m"
-CYAN="\e[36m"
-RESET="\e[0m"
-
-clear
-
-cat << "EOF"
-
- ███████╗██████╗ ██╗  ██╗ ██████╗ ███████╗████████╗
- ██╔════╝██╔══██╗██║  ██║██╔═══██╗██╔════╝╚══██╔══╝
- ███████╗██████╔╝███████║██║   ██║███████╗   ██║
- ╚════██║██╔══██╗██╔══██║██║   ██║╚════██║   ██║
- ███████║██████╔╝██║  ██║╚██████╔╝███████║   ██║
- ╚══════╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝
-
-        SBHOST Installer
-          Version 1.0
-
-EOF
-
-sleep 2
-
-# =========================
-# Root Check
-# =========================
-
+# Root check
 if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}Please run this script as root.${RESET}"
-    exit 1
+  echo -e "\033[1;31m[✘] Error: Please run this script as root (use sudo).\033[0m"
+  exit 1
 fi
 
-# =========================
-# Loading Animation
-# =========================
-
-loading() {
-
-TEXT=$1
-
-echo
-echo -e "${CYAN}${TEXT}${RESET}"
-
-for i in {1..30}; do
-    printf "█"
-    sleep 0.03
-done
-
-echo
-echo
-
-}
-
-loading "Initializing SBHOST..."
-loading "Checking System..."
-loading "Loading Dashboard..."
-
-# =========================
-# System Info
-# =========================
-
-system_info() {
+CYAN='\033[1;36m'
+GREEN='\033[1;32m'
+RED='\033[1;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
 clear
 
-echo "======================================="
-echo "         SYSTEM INFORMATION"
-echo "======================================="
-echo
+# Big SBHOST Banner
+echo -e "${CYAN}"
+echo " ███████╗██████╗ ██╗  ██╗ ██████╗ ███████╗████████╗"
+echo " ██╔════╝██╔══██╗██║  ██║██╔═══██╗██╔════╝╚══██╔══╝"
+echo " ███████╗██████╔╝███████║██║   ██║███████╗   ██║   "
+echo " ╚════██║██╔══██║██║  ██║██║   ██║╚════██║   ██║   "
+echo " ███████║██████╔╝██║  ██║╚██████╔╝███████║   ██║   "
+echo " ╚══════╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   "
+echo -e "${NC}"
+echo -e "${YELLOW}====================================================${NC}"
+echo -e "${GREEN}    SBHOST Minecraft VPS & Pterodactyl Panel      ${NC}"
+echo -e "${YELLOW}====================================================${NC}"
+echo ""
 
-grep PRETTY_NAME /etc/os-release
+echo -e "${CYAN}Please select an option:${NC}"
+echo "  1) Real Minecraft VPS Setup (Docker/Container Environment)"
+echo "  2) Minecraft Panel Install (Pterodactyl Panel on this VPS)"
+echo ""
+read -p "Apna option select karein (1 ya 2): " option
 
-echo
-echo "RAM:"
-free -h
+case $option in
+    1)
+        echo ""
+        echo -e "${GREEN}[+] Option 1: Real Minecraft VPS Environment shuru ho raha hai...${NC}"
+        echo "Updating system and installing Docker for Minecraft containers..."
+        apt-get update && apt-get upgrade -y
+        apt-get install -y curl wget ufw git
+        
+        # Install Docker if not installed
+        if ! command -v docker &> /dev/null; then
+            curl -sSL https://get.docker.com | channel=stable sh
+            systemctl enable --now docker
+        fi
+        
+        echo -e "${GREEN}[✔] Minecraft VPS Environment mukammal taur par tayar ho gaya hai!${NC}"
+        ;;
+    2)
+        echo ""
+        echo -e "${GREEN}[+] Option 2: Minecraft Panel (Pterodactyl) installation shuru ho rahi hai...${NC}"
+        
+        read -p "Apna Panel Domain enter karein (e.g., panel.yourdomain.com): " user_domain
+        
+        if [ -z "$user_domain" ]; then
+            echo -e "${RED}[✘] Error: Domain name khali nahi ho sakta!${NC}"
+            exit 1
+        fi
 
-echo
-echo "CPU:"
-nproc
+        # Get server public IP and check domain DNS
+        server_ip=$(curl -s ifconfig.me)
+        domain_ip=$(dig +short "$user_domain" | tail -n1)
 
-echo
-read -p "Press Enter to return..."
-}
+        echo -e "${YELLOW}[i] Checking domain configuration for: $user_domain ...${NC}"
+        echo -e "${YELLOW}[i] Server IP: $server_ip | Domain IP: ${domain_ip:-Not Found}${NC}"
 
-# =========================
-# Update System
-# =========================
-
-update_system() {
-
-clear
-
-echo -e "${YELLOW}Updating System...${RESET}"
-
-apt update
-apt upgrade -y
-
-echo
-echo -e "${GREEN}System Updated Successfully.${RESET}"
-
-echo
-read -p "Press Enter to return..."
-}
-
-# =========================
-# Install SBHOST
-# =========================
-
-install_sbhost() {
-
-clear
-
-echo "======================================="
-echo "        INSTALL SBHOST PANEL"
-echo "======================================="
-
-echo
-echo "Coming In Part 2..."
-
-echo
-read -p "Press Enter to return..."
-
-}
-
-# =========================
-# Main Menu
-# =========================
-
-main_menu() {
-
-while true; do
-
-clear
-
-cat << "EOF"
-
-███████╗██████╗ ██╗  ██╗ ██████╗ ███████╗████████╗
-██╔════╝██╔══██╗██║  ██║██╔═══██╗██╔════╝╚══██╔══╝
-███████╗██████╔╝███████║██║   ██║███████╗   ██║
-╚════██║██╔══██╗██╔══██║██║   ██║╚════██║   ██║
-███████║██████╔╝██║  ██║╚██████╔╝███████║   ██║
-╚══════╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝
-
-EOF
-
-echo
-echo "======================================="
-echo "        SBHOST DASHBOARD"
-echo "======================================="
-echo
-echo "1) Install SBHOST Panel"
-echo "2) System Information"
-echo "3) Update System"
-echo "4) Exit"
-echo
-
-read -p "Select Option: " OPTION
-
-case $OPTION in
-
-1)
-    install_sbhost
-    ;;
-
-2)
-    system_info
-    ;;
-
-3)
-    update_system
-    ;;
-
-4)
-    clear
-    echo "Goodbye."
-    exit 0
-    ;;
-
-*)
-    echo
-    echo -e "${RED}Invalid Option!${RESET}"
-    sleep 2
-    ;;
-
+        if [ -z "$domain_ip" ]; then
+            echo -e "${RED}[✘] Yeh domain exist nahi karta ya DNS A record set nahi hai!${NC}"
+            exit 1
+        elif [ "$domain_ip" != "$server_ip" ]; then
+            echo -e "${RED}[✘] This is not your domain! (Domain IP: $domain_ip current server IP: $server_ip se match nahi karti)${NC}"
+            exit 1
+        else
+            echo -e "${GREEN}[✔] Domain verified successfully! IP match ho gayi hai.${NC}"
+            echo -e "${CYAN}[i] Installing Pterodactyl Minecraft Panel locally on this VPS...${NC}"
+            
+            # Automated Pterodactyl Panel single-click script execution for local VPS
+            bash <(curl -s https://raw.githubusercontent.com/pterodactyl-installer/pterodactyl-installer/v1.7.0/install.sh) --panel --extras --email admin@$user_domain --unoview --panel-domain $user_domain --php-version 8.1 --no-firewall --no-letsencrypt
+            
+            echo -e "${GREEN}[✔] Minecraft Panel successfully is VPS par ban gaya hai!${NC}"
+            echo -e "Aap apna panel is link par access kar sakte hain: ${CYAN}http://$user_domain${NC}"
+        fi
+        ;;
+    *)
+        echo ""
+        echo -e "${RED}[✘] Galat option select kiya hai. Baraye meharbani 1 ya 2 chunen.${NC}"
+        exit 1
+        ;;
 esac
-
-done
-
-}
-
-# =========================
-# Start
-# =========================
-# ==================================================
-# SBHOST - Install Docker + Docker Compose + Node.js
-# + Nginx
-# ==================================================
-
-install_requirements() {
-
-clear
-
-echo "========================================"
-echo " Installing Required Packages"
-echo "========================================"
-echo
-
-apt update -y
-
-apt install -y \
-curl \
-wget \
-git \
-unzip \
-tar \
-software-properties-common \
-ca-certificates \
-apt-transport-https \
-gnupg \
-lsb-release
-
-echo
-echo "Base Packages Installed."
-sleep 2
-
-#########################################
-# Docker
-#########################################
-
-if ! command -v docker >/dev/null 2>&1; then
-
-echo
-echo "Installing Docker..."
-
-curl -fsSL https://get.docker.com | bash
-
-systemctl enable docker
-systemctl start docker
-
-else
-
-echo
-echo "Docker Already Installed."
-
-fi
-
-#########################################
-# Docker Compose
-#########################################
-
-if ! docker compose version >/dev/null 2>&1; then
-
-echo
-echo "Installing Docker Compose..."
-
-mkdir -p ~/.docker/cli-plugins
-
-curl -SL \
-https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
--o ~/.docker/cli-plugins/docker-compose
-
-chmod +x ~/.docker/cli-plugins/docker-compose
-
-else
-
-echo
-echo "Docker Compose Already Installed."
-
-fi
-
-#########################################
-# Node.js 22
-#########################################
-
-if ! command -v node >/dev/null 2>&1; then
-
-echo
-echo "Installing Node.js..."
-
-curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-
-apt install -y nodejs
-
-else
-
-echo
-echo "Node.js Already Installed."
-
-fi
-
-#########################################
-# Nginx
-#########################################
-
-if ! command -v nginx >/dev/null 2>&1; then
-
-echo
-echo "Installing Nginx..."
-
-apt install -y nginx
-
-systemctl enable nginx
-systemctl start nginx
-
-else
-
-echo
-echo "Nginx Already Installed."
-
-fi
-
-echo
-echo "========================================"
-echo " All Requirements Installed Successfully"
-echo "========================================"
-
-echo
-echo "Docker Version:"
-docker --version
-
-echo
-echo "Docker Compose:"
-docker compose version
-
-echo
-echo "Node Version:"
-node -v
-
-echo
-echo "NPM Version:"
-npm -v
-
-echo
-echo "Nginx Version:"
-nginx -v
-
-echo
-read -p "Press Enter To Continue..."
-
-}
-main_menu
-#!/bin/bash
-
-# ==================================================
-# SBHOST Part 3A
-# PHP 8.3 + MariaDB + Redis + Composer
-# ==================================================
-
-set -e
-
-echo "Updating packages..."
-apt update -y
-
-echo "Installing PHP..."
-apt install -y software-properties-common ca-certificates lsb-release apt-transport-https
-add-apt-repository -y ppa:ondrej/php || true
-apt update -y
-
-apt install -y \
-php8.3 php8.3-cli php8.3-fpm php8.3-common \
-php8.3-mysql php8.3-gd php8.3-mbstring php8.3-bcmath \
-php8.3-xml php8.3-curl php8.3-zip php8.3-intl
-
-echo "Installing MariaDB..."
-apt install -y mariadb-server
-systemctl enable mariadb || true
-systemctl start mariadb || true
-
-echo "Installing Redis..."
-apt install -y redis-server
-systemctl enable redis-server || true
-systemctl start redis-server || true
-
-echo "Installing Composer..."
-EXPECTED_SIGNATURE=$(curl -s https://composer.github.io/installer.sig)
-php -r "copy('https://getcomposer.org/installer','composer-setup.php');"
-ACTUAL_SIGNATURE=$(php -r "echo hash_file('sha384','composer-setup.php');")
-
-if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]; then
-    echo "Composer installer signature mismatch."
-    rm -f composer-setup.php
-    exit 1
-fi
-
-php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-rm -f composer-setup.php
-
-echo
-echo "===================================="
-echo " SBHOST Part 3A Completed!"
-echo "===================================="
-echo "PHP: $(php -v | head -n1)"
-echo "Composer: $(composer --version)"
-echo "MariaDB installed."
-echo "Redis installed."
-echo
-echo "Continue with Part 3B next."
